@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stories   HypnosisStory[]
+  usages    UsageRecord[]
+}
+
+model HypnosisStory {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  occupation  String
+  stressors   String   // JSON 数组字符串
+  scene       String
+  voiceStyle  String
+  duration    Int      // 期望时长（分钟）
+
+  script      String   // 生成的脚本
+  audioUrl    String   // 音频 URL
+  audioLength Int      // 音频实际时长（秒）
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  usages      UsageRecord[]
+  feedbacks   Feedback[]
+}
+
+model UsageRecord {
+  id          String   @id @default(uuid())
+  storyId     String
+  story       HypnosisStory @relation(fields: [storyId], references: [id])
+
+  startTime   DateTime
+  endTime     DateTime?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Feedback {
+  id          String   @id @default(uuid())
+  storyId     String
+  story       HypnosisStory @relation(fields: [storyId], references: [id])
+
+  rating      Int      // 1-5
+  completed   String   // 完整听完/听了一半/听了几分钟就关了
+  likes       String?
+  dislikes   String?
+  willingness String   // 不愿意付费/5元/月/15元/月/30元/月/50元/月或更多
+  moreFeatures String?
+  createdAt   DateTime @default(now())
+}
